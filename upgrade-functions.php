@@ -9,10 +9,10 @@ add_site_option('httpbl_reloaded_options',$this->options);
 
 
 function install($version = false, $current = false) {
-	echo 'installing';
+	//echo 'installing';
 	switch ($version){
 		case '0.1.alpha':
-		case '0.1.beta':
+		//case '0.1.beta':
 			break; //we are up to date
 		default: // latest version
 			global $wpdb;
