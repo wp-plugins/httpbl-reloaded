@@ -2,9 +2,9 @@
 /*
 Plugin Name: http:BL Reloaded WordPress Plugin
 Plugin URI: http://wordpress.org/extend/plugins/httpbl-reloaded/
-Description: http:BL WordPress Plugin allows you to verify IP addresses of clients connecting to your blog against the <a href="http://www.projecthoneypot.org/?rf=28499">Project Honey Pot</a> database. 
+Description: http:BL Reloaded WordPress Plugin allows you to verify IP addresses of clients connecting to your blog against the <a href="http://www.projecthoneypot.org/?rf=84178">Project Honey Pot</a> database. 
 Author: deadpan110
-Version: 0.1.beta1
+Version: 0.1.beta2
 Author URI: http://ind-web.com/
 License: This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
 Credits: Based on the original http:BL plugin by Jan Stępień ( http://stepien.cc/~jan ) and others.
@@ -100,7 +100,11 @@ class httpBLreloaded {
 
 		
 		// allow other plugins to adjust the options
-		$this->options = apply_filters( 'httpbl_reloaded_options', array_merge ($defaults, get_site_option('httpbl_reloaded_options',array())));
+		if (is_multisite()) {
+			$this->options = apply_filters( 'httpbl_reloaded_options', array_merge ($defaults, get_site_option('httpbl_reloaded_options',array())));
+		} else {
+			$this->options = apply_filters( 'httpbl_reloaded_options', array_merge ($defaults, get_option('httpbl_reloaded_options',array())));
+		}
 
 		if (defined('HTTPBL_ACCESS_KEY')) $this->options['access_key'] = HTTPBL_ACCESS_KEY;
 		
@@ -152,8 +156,11 @@ class httpBLreloaded {
 			unset($honeypot);
 		}
 		
-		add_site_option('httpbl_reloaded_options',$this->options);
-		
+		if (is_multisite()) {
+			add_site_option('httpbl_reloaded_options',$this->options);
+		} else {
+			update_option('httpbl_reloaded_options',$this->options);
+		}
 		add_action('admin_notices', array($this,'msg_options_update'));
 		
 	}
@@ -164,10 +171,17 @@ class httpBLreloaded {
 		
 		// store our version
 		$version = $this->options['version'];
-		// delete all options
-		delete_site_option('httpbl_reloaded_options');
-		// save version
-		add_site_option('httpbl_reloaded_options',array('version' => $version));
+		if (is_multisite()) {
+			// delete all options
+			delete_site_option('httpbl_reloaded_options');
+			// save version
+			add_site_option('httpbl_reloaded_options',array('version' => $version));
+		} else {
+			// delete all options
+			delete_option('httpbl_reloaded_options');
+			// save version
+			update_option('httpbl_reloaded_options',array('version' => $version));
+		}
 		// reload defaults
 		$this->get_options();
 		add_action('admin_notices', array($this,'msg_options_reset'));
